@@ -1,0 +1,60 @@
+Lệnh reset interface mỗi switch ở vlan:
+    default interface fa0/24
+    interface fa0/24
+    switchport mode trunk
+    switchport trunk allowed vlan 60,90
+    switchport trunk native vlan 1
+    no shutdown
+    exit
+
+
+Lệnh solve: destination unreachable
+    Chưa có
+
+
+Cấu hình NAT trên ASA:
+    object network LAN_INSIDE
+    subnet 10.0.0.0 255.0.0.0
+    nat (inside,outside) dynamic interface
+
+Routing ip để đi ra mạng ngoài:
+    ip route 0.0.0.0 0.0.0.0 172.16.0.1
+    từ core đi đến 172.16.0.1 và destination là 0.0.0.0
+
+Tìm hiểu về OSPF (Cấu hình OSPF để quảng bá wan, đẩy LAN vào OSPF)
+    ! 5. Cấu hình OSPF để quảng bá mạng WAN và đẩy route LAN vào OSPF
+    Router_Main(config)# router ospf 1
+    Router_Main(config-router)# network 200.10.20.0 0.0.0.3 area 0  ! Link tới DBP
+    Router_Main(config-router)# network 200.10.20.4 0.0.0.3 area 0  ! Link tới BHTQ
+    Router_Main(config-router)# redistribute static subnets         ! Quảng bá mạng 10.0.0.0 cho các chi nhánh biết
+    Router_Main(config-router)# exit
+
+
+Config trên router ở DBP
+    Router_DBP> enable
+    Router_DBP# conf t
+    ! 1. Cấu hình cổng LAN nối xuống ASA (qua Switch0)
+        Router_DBP(config)# interface Gig0/0
+        Router_DBP(config-if)# ip address 10.2.0.1 255.255.255.252
+        Router_DBP(config-if)# no shutdown
+        Router_DBP(config-if)# exit
+
+        ! 2. Định tuyến tĩnh đến các mạng nội bộ (nằm sau ASA)
+        ! Trỏ tất cả mạng 10.2.x.x về IP Outside của ASA
+        Router_DBP(config)# ip route 10.2.0.0 255.255.0.0 10.2.0.2
+
+        ! 3. Cập nhật OSPF để quảng bá mạng DBP cho Main Site
+        Router_DBP(config)# router ospf 1
+        ! Quảng bá mạng kết nối trực tiếp với ASA
+        Router_DBP(config-router)# network 10.2.0.0 0.0.0.3 area 0
+        ! Quảng bá các đường route tĩnh (để Main site biết đường vào VLAN bên trong)
+        Router_DBP(config-router)# redistribute static subnets
+        Router_DBP(config-router)# exit
+
+
+OSPF (Open Shortest Path First)
+Wildcard Mask
+    Ví dụ: 
+        ip 10.2.0.0 có wildcard mask 0.0.0.3 tương với dãy ip từ 10.2.0.0/30 bao gồm 10.2.0.0 đến 10.2.0.3
+        area 0: còn gọi là backbone area. Tất cả area khác phải kết nối đến Area 0
+        redistribute static subnets: Phân phối lại static route đã được cấu hình trong ospf. Để main site biết đường đi đến 10.2.0.0 thông qua DBP router
