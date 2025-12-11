@@ -7,10 +7,43 @@ Lệnh reset interface mỗi switch ở vlan:
     no shutdown
     exit
 
-
 Lệnh solve: destination unreachable
     Chưa có
 
+Lệnh nếu DHCP không distribute cho PC:
+    CoreSwitch> enable
+    CoreSwitch# configure terminal
+
+    ! Cấu hình cho VLAN 10 (ADMIN)
+    CoreSwitch(config)# interface vlan 10
+    CoreSwitch(config-if)# ip helper-address 10.0.70.10
+    CoreSwitch(config-if)# exit
+
+    ! Cấu hình cho VLAN 20 (MEDICAL)
+    CoreSwitch(config)# interface vlan 20
+    CoreSwitch(config-if)# ip helper-address 10.0.70.10
+    CoreSwitch(config-if)# exit
+
+    ! Lặp lại tương tự cho các VLAN 30, 40, 50, 60, 90
+    CoreSwitch(config)# interface vlan 30
+    CoreSwitch(config-if)# ip helper-address 10.0.70.10
+    CoreSwitch(config-if)# exit
+
+    CoreSwitch(config)# interface vlan 40
+    CoreSwitch(config-if)# ip helper-address 10.0.70.10
+    CoreSwitch(config-if)# exit
+
+    CoreSwitch(config)# interface vlan 50
+    CoreSwitch(config-if)# ip helper-address 10.0.70.10
+    CoreSwitch(config-if)# exit
+
+    CoreSwitch(config)# interface vlan 60
+    CoreSwitch(config-if)# ip helper-address 10.0.70.10
+    CoreSwitch(config-if)# exit
+
+    CoreSwitch(config)# interface vlan 90
+    CoreSwitch(config-if)# ip helper-address 10.0.70.10
+    CoreSwitch(config-if)# exit
 
 Cấu hình NAT trên ASA:
     object network LAN_INSIDE
@@ -58,3 +91,15 @@ Wildcard Mask
         ip 10.2.0.0 có wildcard mask 0.0.0.3 tương với dãy ip từ 10.2.0.0/30 bao gồm 10.2.0.0 đến 10.2.0.3
         area 0: còn gọi là backbone area. Tất cả area khác phải kết nối đến Area 0
         redistribute static subnets: Phân phối lại static route đã được cấu hình trong ospf. Để main site biết đường đi đến 10.2.0.0 thông qua DBP router
+
+ip routing: Bật định tuyến toàn cục trên Switch layer 3
+
+
+
+
+
+
+configure terminal
+interface fa0/24
+no switchport access vlan 10
+switchport mode trunk
